@@ -1,7 +1,7 @@
 ---
 home: true
-actionText: 测试
-actionLink: /demo/
+actionText: RabbitMq 实战指南
+actionLink: /rabbitmq-ac/
 features:
 - title: 系统学习
   details: 零散无基础，会让你很没有安全感，只有系统学习后才能深入了解相关知识点
@@ -12,13 +12,8 @@ features:
 footer: MIT Licensed | Copyright © mrcode
 ---
 
-本笔记仓库是打算系统的学习下 mysql 相关的技术知识
+本笔记仓库是打算系统的学习下 MQ 相关的技术知识
 
-## 内容导航
-
-建设中
-
-分布式事务，有必要去了解下。
 ## 规约
 
 尽量遵循以下规范。
