@@ -82,6 +82,7 @@ module.exports = {
     ['@vuepress/search', {
       searchMaxSuggestions: 10
     }],
+    ['vuepress-plugin-baidu-autopush', true],
     ['vuepress-plugin-code-copy', true],
     // ['vuepress-plugin-baidu-tongji-analytics', {
     //   key: 'xxx',
