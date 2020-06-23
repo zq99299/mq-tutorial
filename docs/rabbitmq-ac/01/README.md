@@ -120,4 +120,236 @@ RabbitMQ 发展到今天，被越来越多人认可，这和它在易用性、�
 
 前面说到过，RabbitMQ 是由 Erlang 语言编写的， 需要先下载；本书采用 [19.x 版本](https://www.erlang.org/downloads/19.3)。[下载链接](http://erlang.org/download/otp_src_19.3.tar.gz)
 
+```bash
+# 安装依赖模块
+[root@study opt]# yum -y install make gcc gcc-c++ kernel-devel m4 ncurses-devel openssl-devel
+[root@study opt]# yum install ncurses-devel
+# 解压缩与配置
+[root@study opt]# cd /opt
+[root@study opt]# tar zxvf otp_src_19.3.tar.gz
+[root@study opt]# cd otp_src_19.3
+[root@study otp_src_19.3]# ./configure --prefix=/opt/erlang --with-ssl --enable-threads --enable-smp-support --enable-kernel-poll --enable-hipe --without-javac
+
+# 安装 erlang
+[root@study otp_src_19.3]# marke && make install
+
+# 配置环境变量
+[root@study ~]# vim /etc/profile
+ERLANG_HOME=/opt/erlang
+export PATH=$PATH:$ERLANG_HOME/bin
+export ERLANG_HOME
+[root@study ~]# source /etc/profile
+
+# 验证是否安装成功
+[root@study otp_src_19.3]# erl
+Erlang/OTP 19 [erts-8.3] [source] [64-bit] [async-threads:10] [hipe] [kernel-poll:false]
+```
+
+
+
+### 安装 RabbitMQ
+
+使用 [3.6.15 版本](https://github.com/rabbitmq/rabbitmq-server/releases/tag/rabbitmq_v3_6_15)，[下载链接](https://github.com/rabbitmq/rabbitmq-server/releases/download/rabbitmq_v3_6_15/rabbitmq-server-generic-unix-3.6.15.tar.xz)
+
+```bash
+[root@study opt]# cd /opt
+[root@study opt]# tar -xvJf rabbitmq-server-generic-unix-3.6.15.tar.xz
+[root@study opt]# mv rabbitmq_server-3.6.15/ rabbitmq
+
+# 配置环境变量
+[root@study opt]# vim /etc/profile
+export PATH=$PATH:/root/server/rabbitmq/sbin
+export RABBITMQ_HOME=/root/server/rabbitmq
+[root@study ~]# source /etc/profile
+```
+
+运行 RabbitMQ
+
+```bash
+# 使用 -detached 参数是为了让 RabbitMQ 以守护进程方式在后台运行
+[root@study ~]# rabbitmq-server -detached
+Warning: PID file not written; -detached was passed.
+
+# 查看 RabbitMQ 状态
+[root@study ~]# rabbitmqctl status
+Status of node rabbit@study
+[{pid,25358},
+ {running_applications,
+     [{rabbit,"RabbitMQ","3.6.15"},
+      {mnesia,"MNESIA  CXC 138 12","4.14.3"},
+      {os_mon,"CPO  CXC 138 46","2.4.2"},
+      {rabbit_common,
+          "Modules shared by rabbitmq-server and rabbitmq-erlang-client",
+          "3.6.15"},
+      {syntax_tools,"Syntax tools","2.1.1"},
+      {ranch,"Socket acceptor pool for TCP protocols.","1.3.2"},
+      {ssl,"Erlang/OTP SSL application","8.1.1"},
+      {public_key,"Public key infrastructure","1.4"},
+      {crypto,"CRYPTO","3.7.3"},
+      {asn1,"The Erlang ASN1 compiler version 4.0.4","4.0.4"},
+      {compiler,"ERTS  CXC 138 10","7.0.4"},
+      {xmerl,"XML parser","1.3.13"},
+      {recon,"Diagnostic tools for production use","2.3.2"},
+      {sasl,"SASL  CXC 138 11","3.0.3"},
+      {stdlib,"ERTS  CXC 138 10","3.3"},
+      {kernel,"ERTS  CXC 138 10","5.2"}]},
+ {os,{unix,linux}},
+...
+# 可以看到启动成功了
+
+# 还可以查看集群信息，现在只有一个节点
+[root@study ~]# rabbitmqctl cluster_status
+Cluster status of node rabbit@study
+[{nodes,[{disc,[rabbit@study]}]},
+ {running_nodes,[rabbit@study]},
+ {cluster_name,<<"rabbit@study">>},
+ {partitions,[]},
+ {alarms,[{rabbit@study,[]}]}]
+
+```
+
+### 新增账户
+
+默认情况下 RabbitMQ 有一个 guest 账户，只允许通过  `localhost` 访问，远程网络访问受限。所以需要新添加一个账户
+
+```bash
+# 创建 admin 用户，密码为 root
+[root@study ~]# rabbitmqctl add_user admin root
+Creating user "admin"
+
+# 设置用户拥有所有权限
+[root@study ~]# rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+Setting permissions for user "admin" in vhost "/"
+
+# 设置 admin 用户为 管理员角色
+[root@study ~]# rabbitmqctl set_user_tags admin administrator
+Setting tags for user "admin" to [administrator]
+```
+
+
+### 生产和消费
+
+本章演示如何使用 RabbitMQ Java 客户端生产和消费消息。
+
+添加依赖包，笔者使用 gradle 管理项目依赖
+
+```groovy
+compile 'com.rabbitmq:amqp-client:4.2.1'
+```
+
+#### 生产者
+
+```java
+/**
+ * 生产者； 一个完整的建立连接、创建信道、创建交换器、创建队列、通过路由键绑定、发送消息、关闭资源
+ */
+public class RabbitProducer {
+    private static final String EXCHANGE_NAME = "exchange_demo";
+    private static final String ROUTING_KEY = "routingky_demo";
+    private static final String QUEUE_NAME = "queue_demo";
+    private static final String IP_ADDRESS = "192.168.4.250";
+    // rabbitMq 服务端默认端口为 5672
+    private static final int PORT = 5672;
+
+    public static void main(String[] args) throws IOException, TimeoutException {
+        final ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost(IP_ADDRESS);
+        factory.setPort(PORT);
+        factory.setUsername("admin");
+        factory.setPassword("root");
+        final Connection connection = factory.newConnection();
+        final Channel channel = connection.createChannel();
+        // 创建一个 type=direct 持久化、非自动删除的交换器
+        channel.exchangeDeclare(EXCHANGE_NAME, "direct", true, false, null);
+        // 创建一个：持久化、非排他的、非自动删除的队列
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+        // 将交换器与队列通过 路由键 绑定
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
+
+        String message = "Hello World!";
+        channel.basicPublish(EXCHANGE_NAME,
+                ROUTING_KEY,
+                MessageProperties.PERSISTENT_TEXT_PLAIN,
+                message.getBytes());
+
+        // 关闭资源
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+这里一个完整模板代码流程：
+
+1. 建立连接
+2. 创建信道
+3. 创建交换器
+4. 创建队列
+5. 通过路由键绑定
+6. 发送消息
+7. 关闭资源
+
+#### 消费者
+
+```java
+package cn.mrcode.rabbitmq;
+
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Address;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * 消费者
+ */
+public class RabbitConsumer {
+    private static final String QUEUE_NAME = "queue_demo";
+    private static final String IP_ADDRESS = "192.168.4.250";
+    private static final int PORT = 5672;
+
+    public static void main(String[] args) throws IOException, TimeoutException, InterruptedException {
+        final Address[] addresses = {
+                new Address(IP_ADDRESS, PORT)
+        };
+        final ConnectionFactory factory = new ConnectionFactory();
+        factory.setUsername("admin");
+        factory.setPassword("root");
+
+        // 这里的联机方式与生产者的 demo 略有不同
+        final Connection connection = factory.newConnection(addresses);
+        final Channel channel = connection.createChannel();
+        // 设置客户端最多接收未被 ack 的消息个数
+        channel.basicQos(64);
+        channel.basicConsume(QUEUE_NAME, new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag,
+                                       Envelope envelope,
+                                       AMQP.BasicProperties properties,
+                                       byte[] body) throws IOException {
+                System.out.println("recv message: " + new String(body));
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                channel.basicAck(envelope.getDeliveryTag(), false);
+            }
+        });
+
+        // 等待消费者回调后，关闭资源
+        TimeUnit.SECONDS.sleep(10);
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+运行生产者和消费者后，消费者会打印出 `recv message: Hello World!`
 
