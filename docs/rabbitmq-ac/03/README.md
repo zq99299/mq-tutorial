@@ -1,4 +1,4 @@
-# 客户端开放向导
+# 客户端开发向导
 RabbitMQ 客户端使用 `com.rabbitmq.client` 作为顶级包名，关键的 Class 和 Interface 有：
 
 - Channel：AMQP 协议层面的操作通过 Channel 接口实现
