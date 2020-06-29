@@ -40,6 +40,18 @@ module.exports = () => {
         '04/09.md',
         '04/10.md'
       ]
+    }, {
+      title: 'RabbitMQ 管理',
+      collapsable: true,
+      children: [
+        '',
+        '05/01.md',
+        '05/02.md',
+        '05/03.md',
+        '05/04.md',
+        '05/05.md',
+        '05/06.md'
+      ]
     }
   ]
 }
