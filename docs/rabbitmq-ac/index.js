@@ -52,6 +52,15 @@ module.exports = () => {
         '05/05.md',
         '05/06.md'
       ]
+    }, {
+      title: 'RabbitMQ 配置',
+      collapsable: true,
+      children: [
+        '',
+        '06/01.md',
+        '06/02.md',
+        '06/03.md'
+      ]
     }
   ]
 }
