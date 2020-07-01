@@ -61,6 +61,13 @@ module.exports = () => {
         '06/02.md',
         '06/03.md'
       ]
+    }, {
+      title: 'RRabbitMQ 运维',
+      collapsable: true,
+      children: [
+        '',
+        '07/01.md'
+      ]
     }
   ]
 }
