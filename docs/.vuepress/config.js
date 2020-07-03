@@ -45,7 +45,8 @@ module.exports = {
     // 页面顶部的导航栏：可以根据自己的需要制定
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'RabbitMq 实战指南', link: '/rabbitmq-ac/' }
+      { text: 'RabbitMq 实战指南', link: '/rabbitmq-ac/' },
+      { text: '笔记精选汇总', link: 'https://github.com/zq99299/repository-summary' }
     ],
     sidebar: {  // 侧边栏配置，需要展示的侧边栏需要在这里配置
       '/rabbitmq-ac/': rabbitmqAcSC()
