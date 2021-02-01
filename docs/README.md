@@ -1,5 +1,6 @@
 ---
 home: true
+heroImage: MLOGO200x200.png
 actionText: RabbitMq 实战指南
 actionLink: /rabbitmq-ac/
 features:

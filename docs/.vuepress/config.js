@@ -10,6 +10,10 @@ module.exports = {
   markdown: {
     lineNumbers: true
   },
+  head:[
+    ['link', { rel: 'icon', href: '/favicon.ico' }],
+    ['link', { rel: 'manifest', href: '/manifest.json' }],
+  ],
   // theme: 'vue',
   themeConfig: {
     docsDir: 'docs',
@@ -33,6 +37,7 @@ module.exports = {
     editLinks: true,
     // 默认为 "Edit this page"
     editLinkText: '帮助我们改善此页面！',
+    logo: 'MLOGO40x40.png',
     // 主题级别的配置
     serviceWorker: {
       updatePopup: true // Boolean | Object, 默认值是 undefined.
