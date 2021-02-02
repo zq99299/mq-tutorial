@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: MLOGO200x200.png
+heroImage: mlogo.svg
 actionText: RabbitMq 实战指南
 actionLink: /rabbitmq-ac/
 features:
